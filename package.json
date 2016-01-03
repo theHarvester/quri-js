@@ -1,5 +1,5 @@
 {
-  "name": "quri-js",
+  "name": "quri",
   "version": "1.0.0",
   "description": "JS wrapper for the QURI string specification",
   "main": "dist/index.js",
