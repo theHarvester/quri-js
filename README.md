@@ -23,7 +23,7 @@ More information about the QURI specification and parser is available [here](htt
 Basic example
 
 ```js
-import Criteria from "../src/index.js";
+import Criteria from "quri";
 
 let criteria = new Criteria();
 
