@@ -32,7 +32,8 @@
     "url": "git+https://github.com/theHarvester/quri-js.git"
   },
   "keywords": [
-    "QURI npm node js package"
+    "QURI",
+    "query string"
   ],
   "author": "theHarvester <james.harvey994@gmail.com>",
   "license": "MIT",
