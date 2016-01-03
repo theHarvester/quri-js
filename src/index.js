@@ -79,40 +79,30 @@ export default class Criteria {
       case '==':
       case 'eq':
         return 'eq';
-        break;
       case '!=':
       case 'neq':
         return 'neq';
-        break;
       case '>':
       case 'gt':
         return 'gt';
-        break;
       case '>=':
       case 'gte':
         return 'gte';
-        break;
       case '<':
       case 'lt':
         return 'lt';
-        break;
       case '<=':
       case 'lte':
         return 'lte';
-        break;
       case 'in':
         return 'in';
-        break;
       case 'not_in':
       case 'nin':
         return 'nin';
-        break;
       case 'like':
         return 'like';
-        break;
       case 'between':
         return 'between';
-        break;
     }
   }
 }
