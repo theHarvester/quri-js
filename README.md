@@ -11,15 +11,39 @@
 ## Install
 
 ```sh
-npm i -D quri-js
+npm i -D quri
 ```
+
+## QURI Spec
+
+More information about the QURI specification and parser is available [here](https://github.com/theHarvester/QURI).
 
 ## Usage
 
-```js
-import quriJs from "quri-js"
+Basic example
 
-quriJs() // true
+```js
+import Criteria from "../src/index.js";
+
+let criteria = new Criteria();
+
+criteria.toString(); // "field_1".eq("my value")
+```
+
+Nested example
+
+```js
+let criteria = new Criteria();
+criteria.appendExpression('field_1', '==', 'outer');
+
+let nestedCriteria = new Criteria('or');
+nestedCriteria.appendExpression('field_2', 'like', 'nested%');
+nestedCriteria.appendExpression('field_3', 'in', [1,2,3,4]);
+
+criteria.appendCriteria(nestedCriteria);
+
+criteria.toString();
+// "field_1".eq("outer"),("field_2".eq("nested%")|"field_3".in(1,2,3,4))
 ```
 
 ## License

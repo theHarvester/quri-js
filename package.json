@@ -35,7 +35,7 @@
     "QURI",
     "query string"
   ],
-  "author": "theHarvester <james.harvey994@gmail.com>",
+  "author": "James Harvey <james.harvey994@gmail.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/theHarvester/quri-js/issues"
