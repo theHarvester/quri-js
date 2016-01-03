@@ -20,15 +20,15 @@ export default class Criteria {
    * @example appendExpression('customer_name', 'like', 'Greg%')
    *
    * @param {string} fieldName Field name
-   * @param {string} operator Operator like '==', '!=', 'like', '>=', etc.
-   * @param {string,number,array} value Value(s) that match the operator.
+   * @param {string} operator String '==', '!=', '>', '>=', '<', '<=', 'in', 'not_in', 'like', 'between'
+   * @param {string,number,Array} value Value(s) that match the operator.
    * The only operators that allow array values are in|out|nin
    */
   appendExpression(fieldName, operator, value) {
     this.criteria.push({
-      fieldName:fieldName,
-      operator:operator,
-      value:value
+      fieldName: fieldName,
+      operator: operator,
+      value: value
     });
   }
 
@@ -40,7 +40,7 @@ export default class Criteria {
    */
   appendCriteria(criteria) {
     this.criteria.push({
-      criteria:criteria
+      criteria: criteria
     });
   }
 
@@ -51,11 +51,16 @@ export default class Criteria {
    */
   toString() {
     let criteriaMap = this.criteria.map(expression => {
-      if(expression.hasOwnProperty('criteria')){
+      if (expression.hasOwnProperty('criteria')) {
         return '(' + expression.criteria.toString() + ')';
       }
       let operator = Criteria.operatorToString(expression.operator);
-      return JSON.stringify(expression.fieldName) + '.' + operator + '(' + JSON.stringify(expression.value) + ')';
+      let valueStr = JSON.stringify(expression.value);
+      if (valueStr.charAt(0) == '[') {
+        // If it's an array we need to remove the [ ] from the outside.
+        valueStr = valueStr.substring(1, valueStr.length - 1);
+      }
+      return JSON.stringify(expression.fieldName) + '.' + operator + '(' + valueStr + ')';
     });
     return criteriaMap.join(this.andOr == 'and' ? ',' : '|');
   }
@@ -69,11 +74,44 @@ export default class Criteria {
    * @returns {string}
    */
   static operatorToString(operatorStr) {
-    switch (operatorStr){
+    switch (operatorStr) {
       case '=':
       case '==':
       case 'eq':
         return 'eq';
+        break;
+      case '!=':
+      case 'neq':
+        return 'neq';
+        break;
+      case '>':
+      case 'gt':
+        return 'gt';
+        break;
+      case '>=':
+      case 'gte':
+        return 'gte';
+        break;
+      case '<':
+      case 'lt':
+        return 'lt';
+        break;
+      case '<=':
+      case 'lte':
+        return 'lte';
+        break;
+      case 'in':
+        return 'in';
+        break;
+      case 'not_in':
+      case 'nin':
+        return 'nin';
+        break;
+      case 'like':
+        return 'like';
+        break;
+      case 'between':
+        return 'between';
         break;
     }
   }
