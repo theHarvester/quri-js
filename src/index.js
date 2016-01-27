@@ -23,6 +23,7 @@ export default class Criteria {
    * @param {string} operator String '==', '!=', '>', '>=', '<', '<=', 'in', 'not_in', 'like', 'between'
    * @param {string,number,Array} value Value(s) that match the operator.
    * The only operators that allow array values are in|out|nin
+   * @returns {Criteria}
    */
   appendExpression(fieldName, operator, value) {
     this.criteria.push({
@@ -30,6 +31,7 @@ export default class Criteria {
       operator: operator,
       value: value
     });
+    return this;
   }
 
   /**
@@ -37,11 +39,13 @@ export default class Criteria {
    * The criteria object may be a new Criteria class or any object with a toString method.
    *
    * @param {Criteria} criteria
+   * @returns {Criteria}
    */
   appendCriteria(criteria) {
     this.criteria.push({
       criteria: criteria
     });
+    return this;
   }
 
   /**
