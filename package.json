@@ -50,6 +50,7 @@
     "dependency-check": "*",
     "doctoc": "*",
     "eslint": "*",
+    "eslint-config-airbnb": "^4.0.0",
     "isparta": "*",
     "rimraf": "*",
     "tap-spec": "*",

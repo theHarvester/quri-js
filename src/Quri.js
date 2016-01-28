@@ -27,9 +27,9 @@ export default class Criteria {
    */
   appendExpression(fieldName, operator, value) {
     this.criteria.push({
-      fieldName: fieldName,
-      operator: operator,
-      value: value
+      fieldName,
+      operator,
+      value,
     });
     return this;
   }
@@ -43,7 +43,7 @@ export default class Criteria {
    */
   appendCriteria(criteria) {
     this.criteria.push({
-      criteria: criteria
+      criteria,
     });
     return this;
   }
@@ -54,19 +54,21 @@ export default class Criteria {
    * @returns {string}
    */
   toString() {
-    let criteriaMap = this.criteria.map(expression => {
+    const criteriaMap = this.criteria.map(expression => {
       if (expression.hasOwnProperty('criteria')) {
-        return '(' + expression.criteria.toString() + ')';
+        return `(${expression.criteria.toString()})`;
       }
-      let operator = Criteria.operatorToString(expression.operator);
+      const operator = Criteria.operatorToString(expression.operator);
       let valueStr = JSON.stringify(expression.value);
-      if (valueStr.charAt(0) == '[') {
+
+      if (valueStr.charAt(0) === '[') {
         // If it's an array we need to remove the [ ] from the outside.
         valueStr = valueStr.substring(1, valueStr.length - 1);
       }
-      return JSON.stringify(expression.fieldName) + '.' + operator + '(' + valueStr + ')';
+      return `${JSON.stringify(expression.fieldName)}.${operator}(${valueStr})`;
     });
-    return criteriaMap.join(this.andOr == 'and' ? ',' : '|');
+
+    return criteriaMap.join(this.andOr === 'and' ? ',' : '|');
   }
 
   /**
@@ -107,6 +109,8 @@ export default class Criteria {
         return 'like';
       case 'between':
         return 'between';
+      default:
+        return null;
     }
   }
 }
