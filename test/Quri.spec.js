@@ -145,3 +145,23 @@ test('throws error for unknown operators', (t) => {
 
   t.equal(hasError, true, 'throws error');
 });
+
+test('parses a string back into a quri object', (t) => {
+  t.plan(1);
+  const string = '"field_1".eq("my value"),("field_2".eq("my inner value")|"field_3".eq("my inner value 2"))';
+  const quri = Quri.parse(string);
+  const object = quri.toJS();
+
+  t.equal(object, {
+    criteria: [
+      ['field_1', '=', 'my value'],
+      {
+        conjunction: 'or',
+        criteria: [
+          ['field_2', '=', 'my inner value'],
+          ['field_3', '=', 'my inner value 2'],
+        ],
+      },
+    ],
+  });
+});

@@ -133,6 +133,20 @@ export default class Quri {
   }
 
   /**
+   * Parses a QURI string back into a Quri instance.
+   *
+   * @param {string} string - The formatted QURI string.
+   * @returns {Quri}
+   */
+  static parse(string) {
+    const quri = new Quri();
+
+    // TODO: parse the QURI string
+
+    return quri;
+  }
+
+  /**
    * Exports the criteria as a plain JS object.
    *
    * @returns {object}
