@@ -16,3 +16,9 @@
     newline-after-var: 1
     no-useless-concat: 1
     prefer-template: 1
+    valid-jsdoc:
+      - 1
+      -
+        prefer: { return: returns }
+        requireReturn: false
+        requireReturnDescription: false

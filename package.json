@@ -1,6 +1,6 @@
 {
   "name": "quri",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "JS wrapper for the QURI string specification",
   "main": "dist/index.js",
   "files": [

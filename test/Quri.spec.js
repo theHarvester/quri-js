@@ -1,61 +1,147 @@
 import test from 'tape';
-import Criteria from '../src/Quri.js';
+import Quri from '../src/Quri.js';
 
 test('test basic string can be created from criteria', (t) => {
   t.plan(1);
-  const criteria = new Criteria();
+  const quri = new Quri();
 
-  criteria.appendExpression('field_1', '=', 'my value');
+  quri.appendExpression('field_1', '=', 'my value');
+  const string = quri.toString();
 
-  t.equal('"field_1".eq("my value")', criteria.toString());
+  t.equal(string, '"field_1".eq("my value")');
 });
 
 test('test closure is applied to inner criteria', (t) => {
   t.plan(1);
-  const criteria = new Criteria();
-  const criteriaInner = new Criteria('or');
+  const quri = new Quri();
+  const quriInner = new Quri('or');
 
-  criteria.appendExpression('field_1', '=', 'my value');
-  criteriaInner.appendExpression('field_2', '=', 'my inner value');
-  criteriaInner.appendExpression('field_3', '=', 'my inner value 2');
-  criteria.appendCriteria(criteriaInner);
+  quri.appendExpression('field_1', '=', 'my value');
+  quriInner.appendExpression('field_2', '=', 'my inner value');
+  quriInner.appendExpression('field_3', '=', 'my inner value 2');
+  quri.appendCriteria(quriInner);
+  const string = quri.toString();
 
   t.equal(
-    '"field_1".eq("my value"),("field_2".eq("my inner value")|"field_3".eq("my inner value 2"))',
-    criteria.toString(),
-    'is equal'
+    string,
+    '"field_1".eq("my value"),("field_2".eq("my inner value")|"field_3".eq("my inner value 2"))'
   );
 });
 
 test('test quote escaping works correctly', (t) => {
   t.plan(1);
-  const criteria = new Criteria();
+  const quri = new Quri();
 
-  criteria.appendExpression('field"1', '=', 'my"value');
+  quri.appendExpression('field"1', '=', 'my"value');
+  const string = quri.toString();
 
-  t.equal('"field\\"1".eq("my\\"value")', criteria.toString());
+  t.equal(string, '"field\\"1".eq("my\\"value")');
 });
 
 test('test arrays are stringified correctly', (t) => {
   t.plan(1);
-  const criteria = new Criteria();
+  const quri = new Quri();
 
-  criteria.appendExpression('field_1', 'not_in', [1, 2, 3, 4]);
+  quri.appendExpression('field_1', 'not_in', [1, 2, 3, 4]);
+  const string = quri.toString();
 
-  t.equal('"field_1".nin(1,2,3,4)', criteria.toString());
+  t.equal(string, '"field_1".nin(1,2,3,4)');
 });
 
 test('test supported operator strings', (t) => {
-  t.equal('eq', Criteria.operatorToString('=='));
-  t.equal('neq', Criteria.operatorToString('!='));
-  t.equal('gt', Criteria.operatorToString('>'));
-  t.equal('gte', Criteria.operatorToString('>='));
-  t.equal('lt', Criteria.operatorToString('<'));
-  t.equal('lte', Criteria.operatorToString('<='));
-  t.equal('in', Criteria.operatorToString('in'));
-  t.equal('nin', Criteria.operatorToString('not_in'));
-  t.equal('nin', Criteria.operatorToString('not_in'));
-  t.equal('like', Criteria.operatorToString('like'));
-  t.equal('between', Criteria.operatorToString('between'));
+  t.equal(Quri.operatorToString('='), 'eq');
+  t.equal(Quri.operatorToString('=='), 'eq');
+  t.equal(Quri.operatorToString('==='), 'eq');
+  t.equal(Quri.operatorToString('eq'), 'eq');
+
+  t.equal(Quri.operatorToString('!='), 'neq');
+  t.equal(Quri.operatorToString('!=='), 'neq');
+  t.equal(Quri.operatorToString('neq'), 'neq');
+
+  t.equal(Quri.operatorToString('>'), 'gt');
+  t.equal(Quri.operatorToString('gt'), 'gt');
+
+  t.equal(Quri.operatorToString('>='), 'gte');
+  t.equal(Quri.operatorToString('gte'), 'gte');
+
+  t.equal(Quri.operatorToString('<'), 'lt');
+  t.equal(Quri.operatorToString('lt'), 'lt');
+
+  t.equal(Quri.operatorToString('<='), 'lte');
+  t.equal(Quri.operatorToString('lte'), 'lte');
+
+  t.equal(Quri.operatorToString('in'), 'in');
+
+  t.equal(Quri.operatorToString('not_in'), 'nin');
+  t.equal(Quri.operatorToString('nin'), 'nin');
+
+  t.equal(Quri.operatorToString('like'), 'like');
+
+  t.equal(Quri.operatorToString('between'), 'between');
+
   t.end();
+});
+
+test('test toJS', (t) => {
+  t.plan(1);
+  const quri = new Quri();
+  const quriInner = new Quri('or');
+
+  quri.appendExpression('field_1', '=', 'my value');
+  quriInner.appendExpression('field_2', '=', 'my inner value');
+  quriInner.appendExpression('field_3', '=', 'my inner value 2');
+  quri.appendCriteria(quriInner);
+  const object = quri.toJS();
+
+  t.deepEqual(object, {
+    criteria: [
+      ['field_1', '=', 'my value'],
+      {
+        conjunction: 'or',
+        criteria: [
+          ['field_2', '=', 'my inner value'],
+          ['field_3', '=', 'my inner value 2'],
+        ],
+      },
+    ],
+  });
+});
+
+test('test fromJS', (t) => {
+  t.plan(1);
+  const object = {
+    criteria: [
+      ['field_1', '=', 'my value'],
+      {
+        conjunction: 'or',
+        criteria: [
+          ['field_2', '=', 'my inner value'],
+          ['field_3', '=', 'my inner value 2'],
+        ],
+      },
+    ],
+  };
+  const quri = Quri.fromJS(object);
+  const string = quri.toString();
+
+  t.equal(
+    string,
+    '"field_1".eq("my value"),("field_2".eq("my inner value")|"field_3".eq("my inner value 2"))'
+  );
+});
+
+test('throws error for unknown operators', (t) => {
+  t.plan(1);
+  let hasError = false;
+  const quri = new Quri();
+
+  quri.appendExpression('field_1', 'foo', 'my value');
+
+  try {
+    quri.toString();
+  } catch (error) {
+    hasError = true;
+  }
+
+  t.equal(hasError, true, 'throws error');
 });
