@@ -11,7 +11,7 @@
 ## Install
 
 ```sh
-npm i -D quri
+npm install quri
 ```
 
 ## QURI Spec
@@ -23,26 +23,26 @@ More information about the QURI specification and parser is available [here](htt
 Basic example
 
 ```js
-import Criteria from "quri";
+import quri from "quri";
 
-let criteria = new Criteria();
+let quri = new quri();
 
-criteria.toString(); // "field_1".eq("my value")
+quri.toString(); // "field_1".eq("my value")
 ```
 
 Nested example
 
 ```js
-let criteria = new Criteria();
-criteria.appendExpression('field_1', '==', 'outer');
+let quri = new quri();
+quri.appendExpression('field_1', '==', 'outer');
 
-let nestedCriteria = new Criteria('or');
-nestedCriteria.appendExpression('field_2', 'like', 'nested%');
-nestedCriteria.appendExpression('field_3', 'in', [1,2,3,4]);
+let nestedQuri = new quri('or');
+nestedQuri.appendExpression('field_2', 'like', 'nested%');
+nestedQuri.appendExpression('field_3', 'in', [1,2,3,4]);
 
-criteria.appendCriteria(nestedCriteria);
+quri.appendCriteria(nestedQuri);
 
-criteria.toString();
+quri.toString();
 // "field_1".eq("outer"),("field_2".eq("nested%")|"field_3".in(1,2,3,4))
 ```
 
