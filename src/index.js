@@ -1,4 +1,4 @@
-import Quri from './Quri';
+import Quri from './quri';
 
 
 export default Quri;

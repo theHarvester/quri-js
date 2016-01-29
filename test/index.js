@@ -1,1 +1,1 @@
-import './Quri.spec';
+import './quri.spec';
