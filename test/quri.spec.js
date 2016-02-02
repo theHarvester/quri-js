@@ -1,5 +1,8 @@
 import test from 'tape';
-import Quri from '../src/Quri.js';
+import Quri, {
+  CONJUNCTION_AND,
+  CONJUNCTION_OR,
+} from '../src/Quri.js';
 
 test('test basic string can be created from criteria', (t) => {
   t.plan(1);
@@ -14,7 +17,7 @@ test('test basic string can be created from criteria', (t) => {
 test('test closure is applied to inner criteria', (t) => {
   t.plan(1);
   const quri = new Quri();
-  const quriInner = new Quri('or');
+  const quriInner = new Quri(CONJUNCTION_OR);
 
   quri.appendExpression('field_1', '=', 'my value');
   quriInner.appendExpression('field_2', '=', 'my inner value');
@@ -26,6 +29,39 @@ test('test closure is applied to inner criteria', (t) => {
     string,
     '"field_1".eq("my value"),("field_2".eq("my inner value")|"field_3".eq("my inner value 2"))'
   );
+});
+
+test('test get conjunction', (t) => {
+  t.plan(1);
+  const quri = new Quri(CONJUNCTION_AND);
+
+  t.equal(quri.conjunction, CONJUNCTION_AND);
+});
+
+test('test set conjunction', (t) => {
+  t.plan(2);
+  const quri = new Quri(CONJUNCTION_AND);
+
+  quri.appendExpression('field_1', '=', 'my value');
+  quri.appendExpression('field_2', '=', 'my value 2');
+  quri.conjunction = CONJUNCTION_OR;
+  const string = quri.toString();
+
+  t.equal(quri.conjunction, CONJUNCTION_OR);
+  t.equal(string, '"field_1".eq("my value")|"field_2".eq("my value 2")');
+});
+
+test('test get criteria', (t) => {
+  t.plan(1);
+  const quri = new Quri();
+
+  quri.appendExpression('field_1', '=', 'my value');
+  quri.appendExpression('field_2', '=', 'my value 2');
+
+  t.deepEqual(quri.criteria, [
+    { field: 'field_1', operator: '=', value: 'my value' },
+    { field: 'field_2', operator: '=', value: 'my value 2' },
+  ]);
 });
 
 test('test quote escaping works correctly', (t) => {
@@ -107,7 +143,33 @@ test('test toJS', (t) => {
   });
 });
 
-test('test fromJS', (t) => {
+test('test toJS with verbose option', (t) => {
+  t.plan(1);
+  const quri = new Quri();
+  const quriInner = new Quri('or');
+
+  quri.appendExpression('field_1', '=', 'my value');
+  quriInner.appendExpression('field_2', '=', 'my inner value');
+  quriInner.appendExpression('field_3', '=', 'my inner value 2');
+  quri.appendCriteria(quriInner);
+  const object = quri.toJS({ verbose: true });
+
+  t.deepEqual(object, {
+    conjunction: 'and',
+    criteria: [
+      { field: 'field_1', operator: '=', value: 'my value' },
+      {
+        conjunction: 'or',
+        criteria: [
+          { field: 'field_2', operator: '=', value: 'my inner value' },
+          { field: 'field_3', operator: '=', value: 'my inner value 2' },
+        ],
+      },
+    ],
+  });
+});
+
+test('test fromJS with array values', (t) => {
   t.plan(1);
   const object = {
     criteria: [
@@ -119,6 +181,51 @@ test('test fromJS', (t) => {
           ['field_3', '=', 'my inner value 2'],
         ],
       },
+    ],
+  };
+  const quri = Quri.fromJS(object);
+  const string = quri.toString();
+
+  t.equal(
+    string,
+    '"field_1".eq("my value"),("field_2".eq("my inner value")|"field_3".eq("my inner value 2"))'
+  );
+});
+
+test('test fromJS with object values', (t) => {
+  t.plan(1);
+  const object = {
+    criteria: [
+      { field: 'field_1', operator: '=', value: 'my value' },
+      {
+        conjunction: 'or',
+        criteria: [
+          { field: 'field_2', operator: '=', value: 'my inner value' },
+          { field: 'field_3', operator: '=', value: 'my inner value 2' },
+        ],
+      },
+    ],
+  };
+  const quri = Quri.fromJS(object);
+  const string = quri.toString();
+
+  t.equal(
+    string,
+    '"field_1".eq("my value"),("field_2".eq("my inner value")|"field_3".eq("my inner value 2"))'
+  );
+});
+
+test('test fromJS with Quri instance nested inside', (t) => {
+  t.plan(1);
+  const innerQuri = new Quri(CONJUNCTION_OR);
+
+  innerQuri.appendExpression('field_2', '=', 'my inner value');
+  innerQuri.appendExpression('field_3', '=', 'my inner value 2');
+
+  const object = {
+    criteria: [
+      { field: 'field_1', operator: '=', value: 'my value' },
+      innerQuri,
     ],
   };
   const quri = Quri.fromJS(object);

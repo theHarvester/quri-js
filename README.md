@@ -20,30 +20,75 @@ More information about the QURI specification and parser is available [here](htt
 
 ## Usage
 
-Basic example
+### Basic example
 
 ```js
-import quri from "quri";
+import Quri from 'quri';
 
-let quri = new quri();
+const quri = new Quri();
 
 quri.toString(); // "field_1".eq("my value")
 ```
 
-Nested example
+### Nested example
 
 ```js
-let quri = new quri();
+import Quri from 'quri';
+
+const quri = new Quri();
+
 quri.appendExpression('field_1', '==', 'outer');
 
-let nestedQuri = new quri('or');
+const nestedQuri = new Quri('or');
+
 nestedQuri.appendExpression('field_2', 'like', 'nested%');
-nestedQuri.appendExpression('field_3', 'in', [1,2,3,4]);
+nestedQuri.appendExpression('field_3', 'in', [1, 2, 3, 4]);
 
 quri.appendCriteria(nestedQuri);
 
 quri.toString();
 // "field_1".eq("outer"),("field_2".eq("nested%")|"field_3".in(1,2,3,4))
+```
+
+### Serialization
+
+```js
+import Quri from 'quri';
+
+let quri = new Quri();
+
+quri.appendExpression('field_1', '==', 'my value');
+
+quri.toJS();
+// { criteria: [ [ 'field_1', '==', 'my value' ] ] }
+quri.toJS({ verbose: true });
+// { conjunction: 'and', criteria: [ { field: 'field_1', operator: '==', value: 'my value' } ] }
+quri.conjunction
+// and
+quri.criteria
+// [ { field: 'field_1', operator: '==', value: 'my value' } ]
+
+quri = Quri.fromJS({ criteria: [ [ 'field_1', '==', 'my value' ] ] })
+quri.toString();
+// "field_1".eq("my value")
+
+quri = Quri.fromJS({ criteria: [ { field: 'field_1', operator: '==', value: 'my value' } ] });
+quri.toString();
+// "field_1".eq("my value")
+
+quri = Quri.fromJS({ conjunction: 'or', criteria: [
+  [ 'field_1', '==', 'my value' ],
+  [ 'field_2', '==', 'my value 2' ]
+] })
+quri.toString();
+// "field_1".eq("my value")|"field_2".eq("my value 2")
+
+quri = Quri.fromJS({ conjunction: 'or', criteria: [
+  { field: 'field_1', operator: '==', value: 'my value' },
+  { field: 'field_2', operator: '==', value: 'my value 2' }
+] })
+quri.toString();
+// "field_1".eq("my value")|"field_2".eq("my value 2")
 ```
 
 ## License

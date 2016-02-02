@@ -4,17 +4,27 @@
  * @readonly
  * @enum {string}
  */
+export const OPERATOR_EQ = 'eq';
+export const OPERATOR_NEQ = 'neq';
+export const OPERATOR_GT = 'gt';
+export const OPERATOR_GTE = 'gte';
+export const OPERATOR_LT = 'lt';
+export const OPERATOR_LTE = 'lte';
+export const OPERATOR_IN = 'in';
+export const OPERATOR_NIN = 'nin';
+export const OPERATOR_LIKE = 'like';
+export const OPERATOR_BETWEEN = 'between';
 export const operators = [
-  '=', '==', '===', 'eq',
-  '!=', '!==', 'neq',
-  '>', 'gt',
-  '>=', 'gte',
-  '<', 'lt',
-  '<=', 'lte',
-  'in',
-  'not_in', 'nin',
-  'like',
-  'between',
+  '=', '==', '===', OPERATOR_EQ,
+  '!=', '!==', OPERATOR_NEQ,
+  '>', OPERATOR_GT,
+  '>=', OPERATOR_GTE,
+  '<', OPERATOR_LT,
+  '<=', OPERATOR_LTE,
+  OPERATOR_IN,
+  'not_in', OPERATOR_NIN,
+  OPERATOR_LIKE,
+  OPERATOR_BETWEEN,
 ];
 
 
@@ -24,8 +34,10 @@ export const operators = [
  * @readonly
  * @enum {string}
  */
-export const conjunctions = ['and', 'or'];
-export const defaultConjunction = 'and';
+export const CONJUNCTION_AND = 'and';
+export const CONJUNCTION_OR = 'or';
+export const conjunctions = [CONJUNCTION_AND, CONJUNCTION_OR];
+export const defaultConjunction = CONJUNCTION_AND;
 
 
 /**
@@ -65,19 +77,28 @@ export default class Quri {
   }
 
   /**
+   * Return an array copy of the expressions
+   *
+   * @returns {Array}
+   */
+  get criteria() {
+    return this._criteria.slice(0);
+  }
+
+  /**
    * Appends a new expression.
    *
    * @example appendExpression('customer_name', 'like', 'Greg%')
    *
-   * @param {string} fieldName - Field name.
+   * @param {string} field - Field name.
    * @param {operators} operator - The operator string.
    * @param {string|number|Array} value - Value(s) that match the operator.
    *   The only operators that allow array values are in|nin.
    * @returns {Quri}
    */
-  appendExpression(fieldName, operator, value) {
+  appendExpression(field, operator, value) {
     this._criteria.push({
-      fieldName,
+      field,
       operator,
       value,
     });
@@ -118,7 +139,7 @@ export default class Quri {
       if (item.criteria != null) {
         return `(${item.criteria.toString()})`;
       }
-      const fieldNameString = JSON.stringify(item.fieldName);
+      const fieldString = JSON.stringify(item.field);
       const operatorString = Quri.operatorToString(item.operator);
       let valueString = JSON.stringify(item.value);
 
@@ -126,31 +147,38 @@ export default class Quri {
         // If it's an array we need to remove the [ ] from the outside.
         valueString = valueString.substring(1, valueString.length - 1);
       }
-      return `${fieldNameString}.${operatorString}(${valueString})`;
+      return `${fieldString}.${operatorString}(${valueString})`;
     });
 
-    return criteriaMap.join(this._conjunction === 'and' ? ',' : '|');
+    return criteriaMap.join(this._conjunction === CONJUNCTION_AND ? ',' : '|');
   }
 
   /**
    * Exports the criteria as a plain JS object.
    *
    * @returns {object}
+   * @param {object} options - Formatting options.
+   * @param {bool} options.verbose - If true, output expressions as objects,
+   *   otherwise output expressions as arrays. Defaults to false.
    */
-  toJS() {
+  toJS(options = {}) {
     const object = { criteria: [] };
 
-    if (this._conjunction !== defaultConjunction) {
+    if (options.verbose || this._conjunction !== defaultConjunction) {
       object.conjunction = this._conjunction;
     }
 
     for (const item of this._criteria) {
       if (item.criteria != null) {
-        object.criteria.push(item.criteria.toJS());
+        object.criteria.push(item.criteria.toJS(options));
       } else {
-        const { fieldName, operator, value } = item;
+        const { field, operator, value } = item;
 
-        object.criteria.push([fieldName, operator, value]);
+        if (options.verbose) {
+          object.criteria.push({ field, operator, value });
+        } else {
+          object.criteria.push([field, operator, value]);
+        }
       }
     }
 
@@ -173,11 +201,16 @@ export default class Quri {
         const innerQuri = Quri.fromJS(item);
 
         quri.appendQuri(innerQuri);
+      } else if (item.field) {
+        // Assume an expression object
+        const { field, operator, value } = item;
+
+        quri.appendExpression(field, operator, value);
       } else if (item.length === 3) {
         // Assume an iterable with 3 items is an expression.
-        const [fieldName, operator, value] = item;
+        const [field, operator, value] = item;
 
-        quri.appendExpression(fieldName, operator, value);
+        quri.appendExpression(field, operator, value);
       } else {
         // Assume anything else is a criteria object.
         quri.appendCriteria(item);
@@ -202,42 +235,42 @@ export default class Quri {
       case '=':
       case '==':
       case '===':
-      case 'eq':
-        return 'eq';
+      case OPERATOR_EQ:
+        return OPERATOR_EQ;
 
       case '!=':
       case '!==':
-      case 'neq':
-        return 'neq';
+      case OPERATOR_NEQ:
+        return OPERATOR_NEQ;
 
       case '>':
-      case 'gt':
-        return 'gt';
+      case OPERATOR_GT:
+        return OPERATOR_GT;
 
       case '>=':
-      case 'gte':
-        return 'gte';
+      case OPERATOR_GTE:
+        return OPERATOR_GTE;
 
       case '<':
-      case 'lt':
-        return 'lt';
+      case OPERATOR_LT:
+        return OPERATOR_LT;
 
       case '<=':
-      case 'lte':
-        return 'lte';
+      case OPERATOR_LTE:
+        return OPERATOR_LTE;
 
-      case 'in':
-        return 'in';
+      case OPERATOR_IN:
+        return OPERATOR_IN;
 
       case 'not_in':
-      case 'nin':
-        return 'nin';
+      case OPERATOR_NIN:
+        return OPERATOR_NIN;
 
-      case 'like':
-        return 'like';
+      case OPERATOR_LIKE:
+        return OPERATOR_LIKE;
 
-      case 'between':
-        return 'between';
+      case OPERATOR_BETWEEN:
+        return OPERATOR_BETWEEN;
 
       default:
         throw new Error(`Unsupported operator '${operator}'`);
