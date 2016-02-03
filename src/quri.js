@@ -113,9 +113,7 @@ export default class Quri {
    * @returns {Quri}
    */
   appendCriteria(criteria) {
-    this._criteria.push({
-      criteria,
-    });
+    this._criteria.push(criteria);
     return this;
   }
 
@@ -136,9 +134,14 @@ export default class Quri {
    */
   toString() {
     const criteriaMap = this._criteria.map(item => {
-      if (item.criteria != null) {
-        return `(${item.criteria.toString()})`;
+      if (typeof item === 'string') {
+        return `(${item})`;
       }
+
+      if (item instanceof Quri || !item.field || !item.operator) {
+        return `(${item.toString()})`;
+      }
+
       const fieldString = JSON.stringify(item.field);
       const operatorString = Quri.operatorToString(item.operator);
       let valueString = JSON.stringify(item.value);
@@ -169,8 +172,10 @@ export default class Quri {
     }
 
     for (const item of this._criteria) {
-      if (item.criteria != null) {
-        object.criteria.push(item.criteria.toJS(options));
+      if (item instanceof Quri) {
+        object.criteria.push(item.toJS(options));
+      } else if (typeof item === 'string' || !item.field || !item.operator) {
+        object.criteria.push(item);
       } else {
         const { field, operator, value } = item;
 
@@ -192,27 +197,27 @@ export default class Quri {
    * @returns {Quri}
    */
   static fromJS(object) {
+    if (!object) { return new Quri(); }
+
     const quri = new Quri(object.conjunction);
 
     for (const item of object.criteria) {
-      if (item.criteria) {
-        // Assume objects with a criteria property
-        // should become Quri instances.
-        const innerQuri = Quri.fromJS(item);
-
-        quri.appendQuri(innerQuri);
-      } else if (item.field) {
+      if (item instanceof Quri || item.criteria) {
+        // Clone quri instances with fromJS to avoid mutating data.
+        // Assume any objects with a criteria property should become Quri instances.
+        quri.appendQuri(Quri.fromJS(item));
+      } else if (item.field && item.operator) {
         // Assume an expression object
         const { field, operator, value } = item;
 
         quri.appendExpression(field, operator, value);
-      } else if (item.length === 3) {
-        // Assume an iterable with 3 items is an expression.
+      } else if (Array.isArray(item) && item.length === 3) {
+        // Assume an array with 3 items is an expression.
         const [field, operator, value] = item;
 
         quri.appendExpression(field, operator, value);
       } else {
-        // Assume anything else is a criteria object.
+        // Assume anything else is a string or toString-able criteria object.
         quri.appendCriteria(item);
       }
     }

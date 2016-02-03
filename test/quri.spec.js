@@ -237,6 +237,33 @@ test('test fromJS with Quri instance nested inside', (t) => {
   );
 });
 
+test('test fromJS with quri instance returns a clone of the quri instance', (t) => {
+  t.plan(3);
+  const quri = new Quri();
+  const innerQuri = new Quri(CONJUNCTION_OR);
+
+  quri.appendExpression('field_1', '=', 'my value');
+  innerQuri.appendExpression('field_2', '=', 'my inner value');
+  innerQuri.appendExpression('field_3', '=', 'my inner value 2');
+  quri.appendQuri(innerQuri);
+
+  const string = quri.toString();
+  const parsedQuri = Quri.fromJS(quri);
+
+  t.deepEqual(parsedQuri, quri);
+
+  innerQuri.appendExpression('field_4', 'is', 'side effect');
+
+  t.equal(parsedQuri.toString(), string);
+  t.notDeepEqual(parsedQuri, quri);
+});
+
+test('test fromJS with null/undefined', (t) => {
+  t.plan(2);
+  t.equal(Quri.fromJS(null).toString(), '');
+  t.equal(Quri.fromJS().toString(), '');
+});
+
 test('throws error for unknown operators', (t) => {
   t.plan(1);
   let hasError = false;
