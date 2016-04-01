@@ -159,12 +159,12 @@ export default class Quri {
   /**
    * Exports the criteria as a plain JS object.
    *
-   * @returns {object}
-   * @param {object} options - Formatting options.
+   * @param {Object} options - Formatting options.
    * @param {bool} options.verbose - If true, output expressions as objects,
    *   otherwise output expressions as arrays. Defaults to false.
+   * @returns {Object}
    */
-  toJS(options = {}) {
+  serialize(options = {}) {
     const object = { criteria: [] };
 
     if (options.verbose || this._conjunction !== defaultConjunction) {
@@ -173,7 +173,7 @@ export default class Quri {
 
     for (const item of this._criteria) {
       if (item instanceof Quri) {
-        object.criteria.push(item.toJS(options));
+        object.criteria.push(item.serialize(options));
       } else if (typeof item === 'string' || !item.field || !item.operator) {
         object.criteria.push(item);
       } else {
@@ -191,21 +191,52 @@ export default class Quri {
   }
 
   /**
-   * Imports the criteria from a plain JS object
+   * Alias of `serialize`.
    *
-   * @param {object} object - The input object
+   * @param {Object} options - Formatting options.
+   * @param {bool} options.verbose - If true, output expressions as objects,
+   *   otherwise output expressions as arrays. Defaults to false.
+   * @returns {Object}
+   */
+  serialise(options) {
+    return this.serialize(options);
+  }
+
+  /**
+   * Convert this Quri instance to a JSON string,
+   * using the object returned from `serialize`.
+   *
+   * @returns {string} The JSON string.
+   */
+  toJSON() {
+    return JSON.stringify(this.serialize());
+  }
+
+  /**
+   * Alias of `toJSON`.
+   *
+   * @returns {string} The JSON string.
+   */
+  stringify() {
+    return this.toJSON();
+  }
+
+  /**
+   * Imports the criteria from a plain JS object.
+   *
+   * @param {Object} object - The input object.
    * @returns {Quri}
    */
-  static fromJS(object) {
+  static deserialize(object) {
     if (!object) { return new Quri(); }
 
     const quri = new Quri(object.conjunction);
 
     for (const item of object.criteria) {
       if (item instanceof Quri || item.criteria) {
-        // Clone quri instances with fromJS to avoid mutating data.
+        // Clone quri instances with deserialize to avoid mutating data.
         // Assume any objects with a criteria property should become Quri instances.
-        quri.appendQuri(Quri.fromJS(item));
+        quri.appendQuri(Quri.deserialize(item));
       } else if (item.field && item.operator) {
         // Assume an expression object
         const { field, operator, value } = item;
@@ -223,6 +254,43 @@ export default class Quri {
     }
 
     return quri;
+  }
+
+  /**
+   * Alias of `deserialize`.
+   *
+   * @param {Object} object - The input object.
+   * @returns {Quri}
+   */
+  static deserialise(object) {
+    return Quri.deserialize(object);
+  }
+
+  /**
+   * Parses a JSON string into a Quri instance.
+   *
+   * @param {string} json - The JSON string representing serialized Quri data.
+   * @returns {Quri} The parsed Quri instance.
+   */
+  static fromJSON(json) {
+    if (!json) { return new Quri(); }
+
+    const object = JSON.parse(json);
+
+    return Quri.deserialize(object);
+  }
+
+  /**
+   * If given a string, parses it with `fromJSON`, or if given an object,
+   * parses it with `deserialize`.
+   *
+   * @param {string|Object} raw - The JSON string, or serialized quri data.
+   * @returns {Quri} The parsed Quri instance.
+   */
+  static parse(raw) {
+    return typeof raw === 'string' ?
+      Quri.fromJSON(raw) :
+      Quri.deserialize(raw);
   }
 
   /**

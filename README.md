@@ -59,31 +59,31 @@ let quri = new Quri();
 
 quri.appendExpression('field_1', '==', 'my value');
 
-quri.toJS();
+quri.serialize();
 // { criteria: [ [ 'field_1', '==', 'my value' ] ] }
-quri.toJS({ verbose: true });
+quri.serialize({ verbose: true });
 // { conjunction: 'and', criteria: [ { field: 'field_1', operator: '==', value: 'my value' } ] }
 quri.conjunction
 // and
 quri.criteria
 // [ { field: 'field_1', operator: '==', value: 'my value' } ]
 
-quri = Quri.fromJS({ criteria: [ [ 'field_1', '==', 'my value' ] ] })
+quri = Quri.deserialize({ criteria: [ [ 'field_1', '==', 'my value' ] ] })
 quri.toString();
 // "field_1".eq("my value")
 
-quri = Quri.fromJS({ criteria: [ { field: 'field_1', operator: '==', value: 'my value' } ] });
+quri = Quri.deserialize({ criteria: [ { field: 'field_1', operator: '==', value: 'my value' } ] });
 quri.toString();
 // "field_1".eq("my value")
 
-quri = Quri.fromJS({ conjunction: 'or', criteria: [
+quri = Quri.deserialize({ conjunction: 'or', criteria: [
   [ 'field_1', '==', 'my value' ],
   [ 'field_2', '==', 'my value 2' ]
 ] })
 quri.toString();
 // "field_1".eq("my value")|"field_2".eq("my value 2")
 
-quri = Quri.fromJS({ conjunction: 'or', criteria: [
+quri = Quri.deserialize({ conjunction: 'or', criteria: [
   { field: 'field_1', operator: '==', value: 'my value' },
   { field: 'field_2', operator: '==', value: 'my value 2' }
 ] })
