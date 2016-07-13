@@ -2,6 +2,7 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Changelog
 
+- [v2.0.1](#v201)
 - [v2.0.0](#v200)
 - [v1.1.0](#v110)
 - [v1.0.3](#v103)
@@ -9,6 +10,9 @@
 - [v1.0.0](#v100)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+### v2.0.1
+  * Fixed named exports in module
 
 ### v2.0.0
 

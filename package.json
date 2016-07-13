@@ -1,8 +1,8 @@
 {
   "name": "quri",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "JS wrapper for the QURI string specification",
-  "main": "dist/index.js",
+  "main": "dist/quri.js",
   "files": [
     "bin/",
     "dist/"
@@ -10,7 +10,7 @@
   "scripts": {
     "clean": "rimraf dist coverage",
     "lint": "eslint src test",
-    "check": "npm run lint -s && dependency-check package.json --entry src",
+    "check": "npm run lint -s && dependency-check package.json",
     "watch": "watch 'npm run build' src test",
     "test": "mocha",
     "prebuild": "npm run check -s && npm run clean -s",
