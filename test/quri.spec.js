@@ -58,8 +58,8 @@ describe('Quri', () => {
     quri.appendExpression('field_2', '=', 'my value 2');
 
     expect(quri.criteria).to.deep.equal([
-      { field: 'field_1', operator: '=', value: 'my value' },
-      { field: 'field_2', operator: '=', value: 'my value 2' },
+      { fieldName: 'field_1', operator: '=', value: 'my value' },
+      { fieldName: 'field_2', operator: '=', value: 'my value 2' },
     ]);
   });
 
@@ -149,6 +149,24 @@ describe('Quri', () => {
       expect(verboseObject).to.deep.equal({
         conjunction: 'and',
         criteria: [
+          { fieldName: 'field_1', operator: '=', value: 'my value' },
+          {
+            conjunction: 'or',
+            criteria: [
+              { fieldName: 'field_2', operator: '=', value: 'my inner value' },
+              { fieldName: 'field_3', operator: '=', value: 'my inner value 2' },
+            ],
+          },
+        ],
+      });
+    });
+
+    it('should serialize with verbose option and field option', () => {
+      const verboseObject = quri.serialize({ verbose: true, field: true });
+
+      expect(verboseObject).to.deep.equal({
+        conjunction: 'and',
+        criteria: [
           { field: 'field_1', operator: '=', value: 'my value' },
           {
             conjunction: 'or',
@@ -231,6 +249,28 @@ describe('Quri', () => {
     it('should handle object values', () => {
       const object = {
         criteria: [
+          { fieldName: 'field_1', operator: '=', value: 'my value' },
+          {
+            conjunction: 'or',
+            criteria: [
+              { fieldName: 'field_2', operator: '=', value: 'my inner value' },
+              { fieldName: 'field_3', operator: '=', value: 'my inner value 2' },
+            ],
+          },
+        ],
+      };
+      const quri = Quri.deserialize(object);
+      const string = quri.toString();
+
+      expect(string).to.equal(
+        '"field_1".eq("my value"),("field_2".eq("my inner value")|' +
+        '"field_3".eq("my inner value 2"))'
+      );
+    });
+
+    it("should handle object values with shorter 'field' keys", () => {
+      const object = {
+        criteria: [
           { field: 'field_1', operator: '=', value: 'my value' },
           {
             conjunction: 'or',
@@ -258,7 +298,7 @@ describe('Quri', () => {
 
       const object = {
         criteria: [
-          { field: 'field_1', operator: '=', value: 'my value' },
+          { fieldName: 'field_1', operator: '=', value: 'my value' },
           innerQuri,
         ],
       };

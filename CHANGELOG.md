@@ -2,6 +2,7 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Changelog
 
+- [v2.1.0](#v210)
 - [v2.0.1](#v201)
 - [v2.0.0](#v200)
 - [v1.1.0](#v110)
@@ -11,8 +12,17 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+### v2.1.0
+
+  * Re-renamed `field` back to `fieldName` (undid the variable rename from ce90b0e).
+  * Updated `deserialize`/`serialize`/`toString` to use the `fieldName` key,
+    but fall back to the `field` key.
+  * Added a `field` option to `serialize` if the shorter key is desired.
+  * Added extra tests for both of the variations.
+
 ### v2.0.1
-  * Fixed named exports in module
+
+  * Fixed named exports in module.
 
 ### v2.0.0
 

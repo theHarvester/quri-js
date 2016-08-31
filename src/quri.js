@@ -90,15 +90,15 @@ export default class Quri {
    *
    * @example appendExpression('customer_name', 'like', 'Greg%')
    *
-   * @param {string} field - Field name.
+   * @param {string} fieldName - Field name.
    * @param {operators} operator - The operator string.
    * @param {string|number|Array} value - Value(s) that match the operator.
    *   The only operators that allow array values are in|nin.
    * @returns {Quri}
    */
-  appendExpression(field, operator, value) {
+  appendExpression(fieldName, operator, value) {
     this._criteria.push({
-      field,
+      fieldName,
       operator,
       value,
     });
@@ -138,11 +138,16 @@ export default class Quri {
         return `(${item})`;
       }
 
-      if (item instanceof Quri || !item.field || !item.operator) {
+      if (
+        item instanceof Quri ||
+        !(item.fieldName || item.field) ||
+        !item.operator
+      ) {
         return `(${item.toString()})`;
       }
 
-      const fieldString = JSON.stringify(item.field);
+      const fieldName = item.fieldName || item.field;
+      const fieldNameString = JSON.stringify(fieldName);
       const operatorString = Quri.operatorToString(item.operator);
       let valueString = JSON.stringify(item.value);
 
@@ -150,7 +155,7 @@ export default class Quri {
         // If it's an array we need to remove the [ ] from the outside.
         valueString = valueString.substring(1, valueString.length - 1);
       }
-      return `${fieldString}.${operatorString}(${valueString})`;
+      return `${fieldNameString}.${operatorString}(${valueString})`;
     });
 
     return criteriaMap.join(this._conjunction === CONJUNCTION_AND ? ',' : '|');
@@ -162,6 +167,7 @@ export default class Quri {
    * @param {Object} options - Formatting options.
    * @param {bool} options.verbose - If true, output expressions as objects,
    *   otherwise output expressions as arrays. Defaults to false.
+   * @param {bool} options.field - If true, export 'field' keys instead of 'fieldName' ones.
    * @returns {Object}
    */
   serialize(options = {}) {
@@ -174,15 +180,24 @@ export default class Quri {
     for (const item of this._criteria) {
       if (item instanceof Quri) {
         object.criteria.push(item.serialize(options));
-      } else if (typeof item === 'string' || !item.field || !item.operator) {
+      } else if (
+        typeof item === 'string' ||
+        !(item.fieldName || item.field) ||
+        !item.operator
+      ) {
         object.criteria.push(item);
       } else {
-        const { field, operator, value } = item;
+        const { operator, value } = item;
+        const fieldName = item.fieldName || item.field;
 
         if (options.verbose) {
-          object.criteria.push({ field, operator, value });
+          if (options.field) {
+            object.criteria.push({ field: fieldName, operator, value });
+          } else {
+            object.criteria.push({ fieldName, operator, value });
+          }
         } else {
-          object.criteria.push([field, operator, value]);
+          object.criteria.push([fieldName, operator, value]);
         }
       }
     }
@@ -237,16 +252,17 @@ export default class Quri {
         // Clone quri instances with deserialize to avoid mutating data.
         // Assume any objects with a criteria property should become Quri instances.
         quri.appendQuri(Quri.deserialize(item));
-      } else if (item.field && item.operator) {
+      } else if ((item.fieldName || item.field) && item.operator) {
         // Assume an expression object
-        const { field, operator, value } = item;
+        const { operator, value } = item;
+        const fieldName = item.fieldName || item.field;
 
-        quri.appendExpression(field, operator, value);
+        quri.appendExpression(fieldName, operator, value);
       } else if (Array.isArray(item) && item.length === 3) {
         // Assume an array with 3 items is an expression.
-        const [field, operator, value] = item;
+        const [fieldName, operator, value] = item;
 
-        quri.appendExpression(field, operator, value);
+        quri.appendExpression(fieldName, operator, value);
       } else {
         // Assume anything else is a string or toString-able criteria object.
         quri.appendCriteria(item);
